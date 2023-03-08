@@ -1,7 +1,4 @@
-$ONE = 1
-$ZERO = 0
-$CONE = 0x2588
-$CZERO = 0x0020
+Import-Module .\configure.ps1
 
 function rule{
    param (
@@ -27,7 +24,7 @@ function rule{
    for ($i = 0; $i -lt $width; $i++) {
       $filledGen = fill -gen $gen
       write-output $filledGen
-      $tempGen = new_gen -gen $gen -width $width
+      $tempGen = new_gen -gen $gen -width $width -rule $rule
       $gen = $tempGen
    }
 }
@@ -60,7 +57,10 @@ function new_gen{
       $gen,
       [Parameter(Mandatory=$true)]
       [int]
-      $width
+      $width,
+      [Parameter(Mandatory=$true)]
+      [hashtable]
+      $rule
    )
 
    $tempGen = @()
