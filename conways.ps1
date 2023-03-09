@@ -23,16 +23,18 @@ $CZERO = 0x2022
 
 function main{
    # param($grid)
-   param($density)
+   param(
+      $density,
+      $time)
 
    # if (-Not $grid){ $grid = gen-seed}
    $grid = gen-seed -density $density
 
    while ($true) {
       print-grid -grid $grid
-      start-sleep -Seconds 0.6
-      clear-host 
       $grid = next-grid -grid $grid
+      start-sleep -Seconds $time
+      clear-host 
    }
 }
 
