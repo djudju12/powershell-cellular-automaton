@@ -14,39 +14,161 @@
 # all other live cells die in the next gen. 
 
 # Now we start 
-
-$WIDTH = 200 
-$HEITGH = 200
+Import-Module .\configure.ps1
+$HEITGH = 5
+$WIDTH = 9 
 
 
 function main{
-   param($seed)
+   # param($grid)
+   param($density)
 
-   if (-Not $seed){ $seed = gen-seed}
+   # if (-Not $grid){ $grid = gen-seed}
+   # $grid = gen-seed -density $density
+   $grid = @(@(0,0,0,0,0,0,0,0,0),
+             @(0,0,1,0,0,0,0,0,0),
+             @(0,0,0,0,1,0,0,0,0),
+             @(0,1,1,0,0,1,1,1,0),
+             @(0,0,0,0,0,0,0,0,0))
 
-   while ($true) {
-      $grid = gen-grid -seed $seed
-      print-grid -grid $grid
-   }
+   # print-grid -grid $grid
+
+   # start-sleep -Seconds 4
+   $grid = next-grid -grid $grid
+   clear-host
+   print-grid -grid $grid
+
+   # while ($true) {
+   #    start-sleep -Seconds 
+   #    clear-host 
+   #    $grid = next-grid -grid $grid
+   #    print-grid -grid $grid
+   # }
 }
 
-function gen-grid{
+function gen-seed {
+   param(
+      $density
+   )
+
+   $grid = @()
+   for ($i = 0; $i -lt $HEITGH; $i++) {
+      $row = @()
+      for ($j = 0; $j -lt $WIDTH; $j++) {
+         $row += get-randw -density $density
+      }
+      $grid = $grid + , @($row) 
+   }
+   return $grid
+}
+
+function next-grid{
    param(
       [Parameter(Mandatory=$true)]
       [array]
       $grid
    )
 
-   for ($i = 0; $i -lt $array.Count; $i++) {
-      for ($j = 0; $j -lt $array.Count; $j++) {
-         $alive = living-cells -grid $grid
-         switch ($alive) {
-            condition {  }
-            condition {  }
-            condition {  }
-            Default {}
-         }            
+   for ($i = 0; $i -lt $HEITGH; $i++) {
+      for ($j = 0; $j -lt $WIDTH; $j++) {
+         $live_ngb = cell-state -grid $grid -coord @($i, $j)
+         $cell = $grid[$i][$j]
+
+         if (($cell -eq 1) -and (($live_ngb -ge 2) -and ($live_ngb -ge 3))){
+            $grid[$i][$j] = 1
+         }elseif (($cell -eq 0) -and ($live_ngb -eq 3)){
+            $grid[$i][$j] = 1
+         }else{$grid[$i][$j] = 0}
       }
    }
+   return $grid
+}
 
+function cell-state{
+   param (
+      $grid, 
+      $coord
+   )
+   $alives = 0
+   $linha = $coord[0]
+   $coluna = $coord[1]
+   $linhal = $linha - 1 
+   $linhap = $linha + 1 
+
+   $coll = $coluna - 1 
+   $colp = $coluna + 1 
+
+   # ------------------> x
+# | [HEIGTH][WIDTH]
+# | (0 0 0 0 0 0 0 0 0)
+# | (0 0 0 0 0 0 0 0 0)
+# | (0 0 0 0 0 0 0 0 0)
+# | (0 0 0 0 0 0 0 0 0)
+# | (0 0 0 0 0 0 0 0 0)
+# |
+# \/ y
+
+   if($linhal -ge 0){  
+      if ($colp -lt $WIDTH){
+         if($grid[$linhal][$colp] -eq 1) { $alives++ }
+      }
+      if ($coll -ge 0){
+         if($grid[$linhal][$coll] -eq 1) { $alives++ }
+      }
+      if($grid[$linhal][$coluna] -eq 1) { $alives++ }
+   }
+
+   if ($linhap -lt $HEITGH){
+      if ($colp -lt $WIDTH){
+         if($grid[$linhap][$colp] -eq 1) { $alives++ }
+      }
+      if ($coll -ge 0){
+         if($grid[$linhap][$coll] -eq 1) { $alives++ }
+      }
+      if($grid[$linhap][$coluna] -eq 1) { $alives++ }
+   }
+
+   if ($colp -lt $WIDTH){
+      if($grid[$linha][$colp] -eq 1) { $alives++ }
+   }
+
+   if ($colp -ge 0){
+      if($grid[$linha][$coll] -eq 1) { $alives++ }
+   }
+
+   return $alives
+}
+
+function print-grid{
+   param(
+      [Parameter(Mandatory=$true)]
+      [array]
+      $grid
+   )
+
+   for ($i = 0; $i -lt $HEITGH; $i++) {
+      $line = ""
+      for ($j = 0; $j -lt $WIDTH; $j++) {
+         $bit = $grid[$i][$j]
+         switch ($bit) {
+            0 { $line += [char]$CZERO }
+            1 { $line += [char]$CONE }
+            Default {write-output "bad-bit -- Print-Grid " + $bit}
+         }
+      }
+      # $line += [char]$CNL
+      Write-Output $line
+   }
+}
+
+function get-randw{
+   param(
+      $density
+   )
+
+   $number = Get-Random -Minimum 1 -Maximum 11
+   # 10 de densidade o numero precisa ser <= 1 
+   # 20 de densidade o numero precisa ser <= 2
+   if ($number -le $density){$number = 1}else{$number = 0}
+   return $number
 }
