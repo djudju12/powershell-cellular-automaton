@@ -14,9 +14,11 @@
 # all other live cells die in the next gen. 
 
 # Now we start 
-Import-Module .\configure.ps1
-$HEITGH = 5
-$WIDTH = 9 
+$HEITGH = 20
+$WIDTH = 50 
+$CONE = 0x2588
+$CZERO = 0x2022
+# $CZERO = 0x0020
 
 
 function main{
@@ -24,26 +26,14 @@ function main{
    param($density)
 
    # if (-Not $grid){ $grid = gen-seed}
-   # $grid = gen-seed -density $density
-   $grid = @(@(0,0,0,0,0,0,0,0,0),
-             @(0,0,1,0,0,0,0,0,0),
-             @(0,0,0,0,1,0,0,0,0),
-             @(0,1,1,0,0,1,1,1,0),
-             @(0,0,0,0,0,0,0,0,0))
+   $grid = gen-seed -density $density
 
-   # print-grid -grid $grid
-
-   # start-sleep -Seconds 4
-   $grid = next-grid -grid $grid
-   clear-host
-   print-grid -grid $grid
-
-   # while ($true) {
-   #    start-sleep -Seconds 
-   #    clear-host 
-   #    $grid = next-grid -grid $grid
-   #    print-grid -grid $grid
-   # }
+   while ($true) {
+      print-grid -grid $grid
+      start-sleep -Seconds 0.6
+      clear-host 
+      $grid = next-grid -grid $grid
+   }
 }
 
 function gen-seed {
@@ -64,24 +54,23 @@ function gen-seed {
 
 function next-grid{
    param(
-      [Parameter(Mandatory=$true)]
-      [array]
       $grid
    )
-
+   $newgrid = @()
    for ($i = 0; $i -lt $HEITGH; $i++) {
+      $row = @()
       for ($j = 0; $j -lt $WIDTH; $j++) {
          $live_ngb = cell-state -grid $grid -coord @($i, $j)
          $cell = $grid[$i][$j]
-
-         if (($cell -eq 1) -and (($live_ngb -ge 2) -and ($live_ngb -ge 3))){
-            $grid[$i][$j] = 1
+         if (($cell -eq 1) -and (($live_ngb -eq 2) -or ($live_ngb -eq 3))){
+            $row += 1
          }elseif (($cell -eq 0) -and ($live_ngb -eq 3)){
-            $grid[$i][$j] = 1
-         }else{$grid[$i][$j] = 0}
+            $row += 1
+         }else{$row += 0}
       }
+      $newgrid = $newgrid + , @($row)
    }
-   return $grid
+   return $newgrid
 }
 
 function cell-state{
@@ -153,10 +142,9 @@ function print-grid{
          switch ($bit) {
             0 { $line += [char]$CZERO }
             1 { $line += [char]$CONE }
-            Default {write-output "bad-bit -- Print-Grid " + $bit}
+            Default {write-output "bad-bit -- Print-Grid at -> ($i,$j)"}
          }
       }
-      # $line += [char]$CNL
       Write-Output $line
    }
 }
