@@ -14,8 +14,8 @@
 # all other live cells die in the next gen. 
 
 # Now we start 
-$HEITGH = 20
-$WIDTH = 50 
+$HEITGH = 30
+$WIDTH = 80
 $CONE = 0x2588
 $CZERO = 0x2022
 # $CZERO = 0x0020
@@ -144,7 +144,7 @@ function print-grid{
          switch ($bit) {
             0 { $line += [char]$CZERO }
             1 { $line += [char]$CONE }
-            Default {write-output "bad-bit -- Print-Grid at -> ($i,$j)"}
+            Default {write-output "bad-bit -- Print-Grid at -> ($i,$j) bit -> $bit"}
          }
       }
       Write-Output $line
